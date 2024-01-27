@@ -10,7 +10,7 @@ export const signup = signupRouter.post("/signup", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    checkUserCredentials(username, password, res);
+    checkUserCredentials(username, password);
   } catch (error) {
     return res.status(400).json({
       error:
@@ -23,27 +23,23 @@ export const signup = signupRouter.post("/signup", async (req, res) => {
       .createHash("sha256")
       .update(password)
       .digest("hex");
-    try {
-      const queryRes = await MySQLClient.getInstance().setQuery(
-        "INSERT INTO users (username, password) VALUES (?, ?)",
-        [username, hashedPassword]
-      );
 
-      if (queryRes.affectedRows === 1) {
-        const jwt = createJWT({ sub: queryRes.insertId, username });
-        res.status(201).json({ message: "Signup successful", token: jwt });
-      } else {
-        res.status(500).json({ error: "Internal Server Error" });
-      }
-    } catch (error: any) {
-      if ("code" in error && error.code === "ER_DUP_ENTRY") {
-        return res.status(409).json({ error: "username already exists." });
-      }
+    const queryRes = await MySQLClient.getInstance().setQuery(
+      "INSERT INTO users (username, password) VALUES (?, ?)",
+      [username, hashedPassword]
+    );
 
-      return res.status(500).json({ error: "Internal Server Error." });
+    if (queryRes.affectedRows === 1) {
+      const jwt = createJWT({ sub: queryRes.insertId, username });
+      res.status(201).json({ message: "Signup successful", token: jwt });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
     }
-  } catch (error) {
-    console.error("Error during signup:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+  } catch (error: any) {
+    if ("code" in error && error.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({ error: "username already exists." });
+    }
+
+    return res.status(500).json({ error: "Internal Server Error." });
   }
 });

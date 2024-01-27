@@ -11,7 +11,7 @@ export const login = authRouter.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    checkUserCredentials(username, password, res);
+    checkUserCredentials(username, password);
   } catch (error) {
     return res.status(400).json({
       error:
