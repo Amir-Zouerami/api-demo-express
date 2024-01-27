@@ -8,8 +8,9 @@ const userRouter = express.Router();
 
 export const editUser = userRouter.patch("/", async (req, res) => {
   const authHeader = req.headers["authorization"];
+  const { currentPassword } = req.body;
 
-  if (authHeader) {
+  if (authHeader && currentPassword) {
     const { username, password } = req.body;
 
     try {
@@ -29,6 +30,18 @@ export const editUser = userRouter.patch("/", async (req, res) => {
 
     const payload = JSON.parse(base64UrlDecode(token.split(".")[1]));
     const hashedPassword = hashPassword(password);
+    const currentHashedPass = hashPassword(currentPassword);
+
+    const queryRes = await MySQLClient.getInstance().getQuery(
+      "SELECT * FROM users WHERE id = ? AND password = ?",
+      [payload.sub, currentHashedPass]
+    );
+
+    if (queryRes.length < 0) {
+      return res
+        .status(401)
+        .json({ error: "the current password is incorrect" });
+    }
 
     try {
       const queryRes = await MySQLClient.getInstance().setQuery(
