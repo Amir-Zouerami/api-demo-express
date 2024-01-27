@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const base64UrlDecode = (encoded: string): string => {
+export const base64UrlDecode = (encoded: string): string => {
   encoded = encoded.replace(/-/g, "+").replace(/_/g, "/");
   while (encoded.length % 4) {
     encoded += "=";
@@ -51,10 +51,3 @@ export const validateJwtToken = (token: string): boolean => {
 
   return false;
 };
-
-// Example usage
-// const jwtToken = "your_jwt_token_here";
-// const secretKey = "your_secret_key";
-
-// const isValid = validateJwtToken(jwtToken, secretKey);
-// console.log("Is Valid:", isValid);
